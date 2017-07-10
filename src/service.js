@@ -20,7 +20,11 @@ const botservice=[
 //var spark = new SparkAPIWrapper("NTRhMmRlMWYtZGZlOS00YmQ2LTk4YzgtMDhhMDMxZDRmNTg3YzJlMzY3NjgtMjU4");
 //finit state machine
 bot.onMessage(function(trigger,message){
+  console.log();
   console.log("new message from: " + trigger.data.personEmail + ", text: " + message.text);
+  console.log(message);
+  console.log();
+
   // var currentRoom = getRoomIndex(message.roomId);
   // if((-1)== currentRoom){
   //   currentRoom = rooms.demandeQueue.push(new room(currentRoom)) - 1 ;
@@ -29,49 +33,37 @@ bot.onMessage(function(trigger,message){
   if (command) {
     switch (command.keyword) {
       //command from user
-      case "demande":
+      case "demand":
         var serviceL1 = command.args[0];
         var serviceL2 = command.args[1];
-        var r1 = getBotRoom(serviceL1);
+        //var r1 = getBotRoom(serviceL1);
         var e = getBotEmail(serviceL1)
         var r2 = message.roomId;
-        var text = "<@personEmail:"+e+"> /demande "+serviceL2+" "+r2;
-        console.log(text);
-        console.log(r1);
-        spark.createMessage(r1, text, { "markdown":true }, function(err, message) {
-          if (err) {
-            console.log("WARNING: could not post Mention message to room: " + r1);
-            return;
-          }
-        });
+        var text = "<@personEmail:"+e+"> /demand "+serviceL2+" "+r2;
+        spark.createMessage(e, text, { "markdown":true }, messageCallback(err, message));
         break;
       case "callback":
         var serviceL1 = command.args[0];
         var serviceL2 = command.args[1];
-        var r1 = getBotRoom(serviceL1);
+        //var r1 = getBotRoom(serviceL1);
         var e = getBotEmail(serviceL1)
-        var e2 = message.personEmail;
-        var text = "<@personEmail:"+e+"> /callback "+serviceL2+" "+e2;
-        spark.createMessage(r1, text, { "markdown":true }, function(err, message) {
-          if (err) {
-            console.log("WARNING: could not post Mention message to room: " + r1);
-            return;
-          }
-        });
+        //notfinished!!!
+        console.log("@@@@@"+message.markdown);
+        var info = message.markdown.substr(message.markdown.indexOf("Prénom"));
+        //var text = "<@personEmail:"+e+"> /callback "+serviceL2+" "+info;
+        var text = "/callback "+serviceL2+" "+info;
+        spark.createMessage(e, text, { "markdown":true }, messageCallback(err, message));
         break;
       case "finish":
-        var serviceL1 = command.args[0];
-        var r1 = getBotRoom(serviceL1);
-        var e = getBotEmail(serviceL1)
         var r2 = message.roomId;
         var e2 = message.personEmail;
-        var text = "<@personEmail:"+e+"> /finish "+r2+" "+e2;
-        spark.createMessage(r1, text, { "markdown":true }, function(err, message) {
-          if (err) {
-            console.log("WARNING: could not post Mention message to room: " + r1);
-            return;
-          }
-        });
+        if (!(command.args.length == 0)) {
+          var serviceL1 = command.args[0];
+          //var r1 = getBotRoom(serviceL1);
+          var e = getBotEmail(serviceL1)
+          var text = "<@personEmail:"+e+"> /finish "+r2+" "+e2;
+          spark.createMessage(e, text, { "markdown":true }, messageCallback(err, message));
+        }
         spark.deleteRoom(r2, function(err, response) {
           if (!err)
           console.log(response.message)
@@ -81,21 +73,11 @@ bot.onMessage(function(trigger,message){
       case "available":
         var email = command.args[0];
         var r1 = command.args[1];
-        spark.createMessage(r1, email, { "markdown":true }, function(err, message) {
-          if (err) {
-            console.log("WARNING: could not post Mention message to room: " + r1);
-            return;
-          }
-        });
+        spark.createMessage(r1, email, { "markdown":true }, messageCallback(err, message));
         break;
       case "unavailable":
         var r1 = command.args[0];
-        spark.createMessage(r1, "unavailable", { "markdown":true }, function(err, message) {
-          if (err) {
-            console.log("WARNING: could not post Mention message to room: " + r1);
-            return;
-          }
-        });
+        spark.createMessage(r1, "unavailable", { "markdown":true }, messageCallback(err, message));
         break;
       default:
     }
@@ -120,31 +102,9 @@ function getBotEmail(serviceId){
     }
   }
 }
-//chercher un room par roomId
-// function getRoomIndex(roomId){
-//   for ( var i = 0; i < rooms.length; i++) {
-//     if (roomId==rooms[i].id) {
-//       return i;
-//     }
-//     return -1;
-//   }
-// }
-// function room(roomId){
-//   this.id=roomId;
-//   this.demandeQueue = [];
-//   this.serviceQueue = [];
-// }
-//
-// function match(currentRoom){
-//   if ((0!=rooms[currentRoom].demandeQueue.length)&&(0!=rooms[currentRoom].serviceQueue.length)) {
-//     var service = rooms[currentRoom].serviceQueue.shift();
-//     var destination = rooms[currentRoom].demandeQueue.shift();
-//     var response =  "<@personEmail:" + destination + "> "+service;
-//     spark.createMessage(rooms[currentRoom].id,response, { "markdown":true }, function(err, message) {
-//       if (err) {
-//         console.log("WARNING: could not post Mention message to room: " + rooms[currentRoom].id);
-//         return;
-//       }
-//     });
-//   }
-// }
+function messageCallback(err, message){
+  if (err) {
+    console.log("WARNING: could not post Mention message to room: " + r1);
+    return;
+  }
+}
